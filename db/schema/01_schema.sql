@@ -43,7 +43,9 @@ CREATE TABLE restaurant (
     description     text NOT NULL,
     work_start      time NOT NULL,
     work_end        time NOT NULL,
-    company_details text NOT NULL,
+    inn                varchar(12) NOT NULL,                               -- BR-4.5
+    ogrn               varchar(15) NOT NULL,                               -- BR-4.5
+    settlement_account varchar(20) NOT NULL,                               -- BR-4.5
     rating          numeric(3,2),                                          -- BR-9.7
     status          restaurant_status NOT NULL,
     CONSTRAINT restaurant_rating_check    CHECK (rating >= 0 AND rating <= 5),  -- BR-4.2
@@ -53,7 +55,9 @@ CREATE TABLE restaurant (
 -- Курьеры
 CREATE TABLE courier (
     courier_id     uuid PRIMARY KEY DEFAULT exts.uuid_generate_v4(),
-    fio            varchar(150) NOT NULL,
+    last_name      varchar(50) NOT NULL,
+    first_name     varchar(50) NOT NULL,
+    middle_name    varchar(50) NOT NULL,
     phone_number   varchar(15)  NOT NULL,
     status         courier_status NOT NULL,
     hire_date      date NOT NULL,
@@ -68,7 +72,7 @@ CREATE TABLE courier_pay (
     year             int NOT NULL,
     month            int NOT NULL,
     courier_id       uuid NOT NULL REFERENCES courier (courier_id),
-    amount           numeric(14,2) NOT NULL,
+    amount           numeric(9,2) NOT NULL,
     coefficient_used numeric(3,2)  NOT NULL,
     PRIMARY KEY (year, month, courier_id),                          -- BR-10.3
     CONSTRAINT courier_pay_amount_check     CHECK (amount >= 0),                -- BR-10.4
@@ -87,7 +91,7 @@ CREATE TABLE product (
     product_id          uuid PRIMARY KEY DEFAULT exts.uuid_generate_v4(),
     product_name        varchar(100) NOT NULL,
     product_category_id uuid NOT NULL REFERENCES product_category (product_category_id), -- BR-5.1
-    price               numeric(12,2) NOT NULL,
+    price               numeric(8,2) NOT NULL,
     restaurant_id       uuid NOT NULL REFERENCES restaurant (restaurant_id),            -- BR-5.1
     photo_url           text,                                         -- BR-5.6
     rating              numeric(3,2),                                  -- BR-9.7
@@ -106,9 +110,9 @@ CREATE TABLE "order" (
     restaurant_id      uuid NOT NULL REFERENCES restaurant (restaurant_id),
     order_timestamp    timestamp NOT NULL,
     delivery_timestamp timestamp,                                          -- BR-7.12
-    order_amount       numeric(14,2) NOT NULL,
-    commission         numeric(14,2) GENERATED ALWAYS AS (round(order_amount * 0.10, 2)) STORED,                    -- BR-1.4
-    total_amount       numeric(14,2) GENERATED ALWAYS AS (round(order_amount + round(order_amount * 0.10, 2), 2)) STORED, -- BR-7.10
+    order_amount       numeric(9,2) NOT NULL,
+    commission         numeric(8,2) NOT NULL GENERATED ALWAYS AS (round(order_amount * 0.10, 2)) STORED,                    -- BR-1.4
+    total_amount       numeric(9,2) NOT NULL GENERATED ALWAYS AS (round(order_amount + round(order_amount * 0.10, 2), 2)) STORED, -- BR-7.10
     status             order_status     NOT NULL,
     pay_status         order_pay_status NOT NULL,
     description        text,
@@ -124,7 +128,7 @@ CREATE TABLE payment (
     payment_id            uuid PRIMARY KEY DEFAULT exts.uuid_generate_v4(),
     order_id              uuid NOT NULL REFERENCES "order" (order_id),
     payment_type          payment_type NOT NULL,                            -- BR-8.6
-    amount                numeric(14,2) NOT NULL,
+    amount                numeric(9,2) NOT NULL,
     transaction_number    varchar(64) NOT NULL UNIQUE,                      -- BR-8.3
     transaction_timestamp timestamp NOT NULL,
     status                payment_status NOT NULL
@@ -134,7 +138,7 @@ CREATE TABLE payment (
 CREATE TABLE order_structure (
     order_id   uuid NOT NULL REFERENCES "order" (order_id),
     product_id uuid NOT NULL REFERENCES product (product_id),
-    quantity   numeric(10,2) NOT NULL,                                     -- BR-7.15
+    quantity   numeric(5,2) NOT NULL,                                     -- BR-7.15
     PRIMARY KEY (order_id, product_id),                                    -- BR-7.16
     CONSTRAINT order_structure_quantity_check CHECK (quantity > 0)         -- BR-7.15
 );

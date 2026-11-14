@@ -8,7 +8,7 @@ DECLARE
     v_month      int;
     v_courier    RECORD;
     v_del_count  int;
-    v_comm_sum   numeric(14,2);
+    v_comm_sum   numeric(9,2);
     v_coeff_used numeric(3,2);
     v_new_coeff  numeric(3,2);
 BEGIN
